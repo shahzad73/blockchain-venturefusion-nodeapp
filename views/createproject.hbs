@@ -1,0 +1,170 @@
+
+	{{> Common_Header}}
+	{{> Public_Header}}
+	
+	
+	<script language="javascript">
+	
+	
+		$(document).ready(function(){			
+			
+							$("#projectOwner").val(addr3);
+							$("#incubatorOwnerAddress").val(addr1);
+							$("#incubatorOwnerPercentageInProject").val("3000");
+							$("#ventureFusionOwnerAddress").val(addr0);
+							$("#ventureFusionPercentageInProject").val(1000);
+							$("#projectname").val("Project 1");
+							$("#symbol").val("PRO1");
+							$("#decimals").val("3");			
+			
+		})
+
+
+		function createNewProject()
+		{
+			
+			$.get( "/contracts/Incubator.json", function( data ) 
+			{
+					  var abi_contract = data.abi;
+
+					  commonsSetWeb3Object();
+
+					  var contract = web3.eth.contract(abi_contract);
+  					  					  
+					  var incubator = contract.at(BlockchainIncubatorAddress);
+
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };
+
+					  incubator.addNewProject.sendTransaction
+					  (
+							$("#projectOwner").val(), 
+							$("#incubatorOwnerAddress").val(), 
+							$("#incubatorOwnerPercentageInProject").val(), 
+							$("#ventureFusionOwnerAddress").val(), 
+							$("#ventureFusionPercentageInProject").val(), 
+							$("#projectname").val(), 
+							$("#symbol").val(), 
+							$("#decimals").val(), 
+					  transactionObject, 
+					  (error, result)=> 
+					  {
+						  window.location = "/";
+					  });
+				})
+				
+		}
+		
+	</script>
+
+
+	
+
+<div class="container">
+  <h2>New Project</h2>
+  Create a new project 
+  <br><br><br>
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Project Owner Address</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="projectOwner">
+      </div>
+    </div>
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Incubator Owner Address</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="incubatorOwnerAddress">
+      </div>
+    </div>
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Incubator Owner Percentage</label>
+      <div class="col-sm-2">          
+        <input type="text" class="form-control" id="incubatorOwnerPercentageInProject">
+      </div>
+    </div>
+
+
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Venture Fusion Owner Address</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="ventureFusionOwnerAddress">
+      </div>
+    </div>
+
+
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Venture Fusion Percentage</label>
+      <div class="col-sm-2">          
+        <input type="text" class="form-control" id="ventureFusionPercentageInProject">
+      </div>
+    </div>
+
+
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Project Name</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="projectname">
+      </div>
+    </div>
+
+
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Project Symbol</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="symbol">
+      </div>
+    </div>
+	
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Decimals</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="decimals">
+      </div>
+    </div>
+	
+	
+	
+	
+	<br /><br /><br />
+    
+	<div class="form-group">        
+      <div class="col-sm-offset-0 col-sm-10">
+        <button onclick="createNewProject()" class="btn btn-primary">&nbsp;&nbsp;   Create  &nbsp;&nbsp;</button>  
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="/" class="btn btn-primary">&nbsp;&nbsp;   Cancel   &nbsp;&nbsp;</a>  
+      </div>
+    </div>
+
+</div>
+
+
+			 
+			 
+			 
+			 
+	{{> Public_Footer}}
+	{{> Common_Footer}}
+
+	
+	

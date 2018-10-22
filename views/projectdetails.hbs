@@ -1,0 +1,147 @@
+
+	{{> Common_Header}}
+	{{> Public_Header}}
+
+	
+	<script language="javascript">
+			
+			var projectDecimals = 0;
+	
+	
+			$(document).ready(function()
+			{
+			
+				commonsSetWeb3Object();
+				
+				$.get( "/contracts/ProjectEquity.json", function( data ) 
+				{
+					var abi_contract = data.abi;					
+					var contract = web3.eth.contract(abi_contract);
+					var project = contract.at(  commonGetQueryStringValue("pid")  );
+				    
+					
+					
+					project.name.call( (error, result) => 
+					{ 
+						$("#projectname").html(result);
+					});
+
+					project.symbol.call( (error, result) => 
+					{ 
+						$("#projectsymbol").html(result);
+					});
+
+					project.getTaskCount.call( (error, result) => 
+					{ 
+						var count = parseInt(result.toString(), 10);
+						
+						$("#taskCount").html(count);
+						
+
+							    project.decimals.call( (error, result) => 
+								{ 
+									projectDecimals = parseInt(result.toString());
+									
+									
+									$("a#newTaskLink").attr('href', "createtask?pid=" + commonGetQueryStringValue("pid") + "&decimals=" + projectDecimals);
+									
+									
+									$("#projectdecimals").html(projectDecimals);
+									
+									if(projectDecimals == 0)
+										projectDecimals = 1;
+									else if(projectDecimals == 1)
+										projectDecimals = 10;
+									else if(projectDecimals == 2)
+										projectDecimals = 100;
+									else if(projectDecimals == 3)
+										projectDecimals = 1000;
+
+										
+									project.balanceOf.call(web3.eth.accounts[0], (error, result) => 
+									{ 
+										result = parseInt(result.toString());
+										
+										$("#projectshares").html( result / projectDecimals  );
+									});
+									
+
+									if(count > 0)
+									{
+										for(a=0;a<count;a++)
+										{
+											project.getTask.call(a, (error, result) => 
+											{ 
+												var str = "";
+												  
+												  var tmpConShare = parseInt(result[1].toString()) / projectDecimals;
+												  var tmpEvaShare = parseInt(result[2].toString()) / projectDecimals;
+												  
+												  str = str + "<tr>";
+														str = str + "<td>" + result[0] + "</td>";
+														str = str + "<td>" + tmpConShare + " %</td>";
+														str = str + "<td>" + tmpEvaShare + " %</td>";
+														str = str + "<td><a href=\"taskdetails?tid=" + result[3] + "&decimals=" + projectDecimals + "\&pid=" + commonGetQueryStringValue("pid") + "\"  class=\"btn btn-primary pull-right\">Open Task</a>  </td>";
+												  str = str + "</tr>";
+
+												 $("#tasksArea").append(str);
+											});
+										}
+									}
+
+								});
+
+					});
+										
+				});
+				 
+			});
+
+	</script>
+
+
+	
+
+
+<div class="container">
+  <h2>Peoject Details</h2> 
+  <br>
+  
+  <h3><span class="label label-default">Project Name</span> <span id="projectname"> </span> </h3>
+  <h3><span class="label label-default">Symbol</span> <span id="projectsymbol"> </span> </h3>
+  <h3><span class="label label-default">Decimals</span> <span id="projectdecimals"> </span> </h3>
+  <h3><span class="label label-default">Shares</span> <span id="projectshares"> </span> %</h3>
+  
+  <br>
+  
+  <h3>
+	 List of active tasks ( <span id="taskCount"></span> )   
+	 <a id="newTaskLink" href="#" class="btn btn-primary pull-right">New Task</a>    
+  <h3>
+  
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Task</th>
+		<th>Contributor</th>
+        <th>Evaluator</th>
+		<th></th>
+      </tr>
+    </thead>
+	<tbody id="tasksArea"></tbody>
+  </table>
+ 
+  <br><br>
+  <a href="/" class="btn btn-primary">Back to project list</a> 
+ 
+</div>
+
+
+
+			 
+			 
+	{{> Public_Footer}}
+	{{> Common_Footer}}
+
+	
+	

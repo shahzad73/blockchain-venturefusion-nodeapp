@@ -1,0 +1,126 @@
+
+	{{> Common_Header}}
+	{{> Public_Header}}
+	
+	
+	<script language="javascript">
+
+		var projectDecimals = 0;
+	
+		$(document).ready(function(){
+		
+			projectDecimals = parseInt(commonGetQueryStringValue("decimals"));
+			
+			if(projectDecimals == 0)
+				projectDecimals = 1;
+			else if(projectDecimals == 1)
+				projectDecimals = 10;
+			else if(projectDecimals == 2)
+				projectDecimals = 100;
+			else if(projectDecimals == 3)
+				projectDecimals = 1000;
+		
+		});
+
+		function createNewTask()			
+		{
+
+			$.get( "/contracts/ProjectEquity.json", function( data ) 
+			{
+
+					  var abi_contract = data.abi;
+
+					  commonsSetWeb3Object();
+
+					  var contract = web3.eth.contract(abi_contract);
+					  var project = contract.at(  commonGetQueryStringValue("pid")  );
+
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };
+					  
+					  debugger;
+					  var contributorShares = parseFloat($("#contributorShares").val()) * projectDecimals;
+					  var evaluatorShares = parseFloat($("#evaluatorShares").val()) * projectDecimals;
+					  					  
+					  project.launchNewTask.sendTransaction
+					  (
+							$("#Tasktitle").val(), 
+							contributorShares.toString(), 
+							evaluatorShares.toString(), 
+					  transactionObject, 
+					  (error, result)=> 
+					  {
+						  window.location = "/projectdetails?pid=" + commonGetQueryStringValue("pid");
+					  });
+				})
+		}
+			
+	</script>
+
+
+	
+
+<div class="container">
+  <h2>New Project</h2>
+  Create a new project 
+  <br><br><br>
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Task Title</label>
+      <div class="col-sm-5">          
+        <input type="text" class="form-control" id="Tasktitle">
+      </div>
+    </div>
+
+	
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Contributor Shares</label>
+      <div class="col-sm-2">          
+		(0.001 - 99.999) %
+        <input type="text" class="form-control" id="contributorShares"> 
+      </div>
+    </div>
+	
+
+	<br /><br />
+    <div class="form-group">
+      <label class="control-label col-sm-3">Evaluator Shares</label>
+      <div class="col-sm-2">          
+       (0.001 - 99.999) %
+	   <input type="text" class="form-control" id="evaluatorShares"> 
+      </div>
+    </div>
+		
+	
+	<br /><br /><br />
+    
+	<div class="form-group">        
+      <div class="col-sm-offset-0 col-sm-10">
+        <button onclick="createNewTask()" class="btn btn-primary">&nbsp;&nbsp;   Create  &nbsp;&nbsp;</button>  
+		&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="/" class="btn btn-primary">&nbsp;&nbsp;   Cancel   &nbsp;&nbsp;</a>  
+      </div>
+    </div>
+
+</div>
+
+
+
+
+			 
+			 
+			 
+			 
+	{{> Public_Footer}}
+	{{> Common_Footer}}
+
+	
+	

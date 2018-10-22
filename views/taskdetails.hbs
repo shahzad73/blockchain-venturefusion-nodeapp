@@ -1,0 +1,307 @@
+
+	{{> Common_Header}}
+	{{> Public_Header}}
+	
+	
+	<script language="javascript">
+			
+		var task = "";
+		var projectDecimals = 0;
+	
+		$(document).ready(function(){
+			
+				commonsSetWeb3Object();
+				
+				$.get( "/contracts/ProjectTask.json", function( data ) 
+				{
+					var abi_contract = data.abi;					
+					var contract = web3.eth.contract(abi_contract);
+					task = contract.at(  commonGetQueryStringValue("tid")  );
+					
+					task.taskTitle.call( (error, result) => 
+					{ 
+						$("#projecttask").html(result);
+					});
+
+					projectDecimals = parseInt(commonGetQueryStringValue("decimals"));
+					var proLink = "projectdetails?pid=" + commonGetQueryStringValue("pid");
+					$("#backToProjectButton").attr("href", proLink);
+
+					getContributorInformation();
+				     
+					task.numberOfTaskNotes.call( (error, result) => 
+					{ 					 
+						var numComment = parseInt(result);
+						
+						if(numComment > 0)
+						{							
+										for(a=0;a<numComment;a++)
+										{
+											task.taskNotes.call(a, (error, result) => 
+											{ 
+												var sendBy = "";
+												var tmp = result[1].toString();
+												
+												if(tmp == "1")
+													sendBy = "Project Owner";
+												if(tmp == "2")
+													sendBy = "Contributor";
+												if(tmp == "3")
+													sendBy = "Evaluator";
+													
+												
+												var str = "";
+												
+												  str = str + "<tr>";
+														str = str + "<td>" + sendBy + "</td>";
+														str = str + "<td>" + result[0] + "</td>";
+												  str = str + "</tr>";
+
+												 $("#commentsArea").append(str);
+											});
+										}							
+							
+						}
+						
+					});
+				})
+		});
+
+
+
+		function getContributorInformation()
+		{
+					task.getContributorInformation.call( (error, result) => 
+					{ 
+						var projectShares = parseInt(result[1].toString()) / projectDecimals;         //amount of shares 
+						$("#projectShares").html( projectShares + " %" );    
+					
+						if(result[0] == "0x0000000000000000000000000000000000000000")
+						{
+							$("#projectcontributor").html(" No Contributor Assigned ")
+							document.getElementById('ContributorInfor').style.display = 'none';
+							document.getElementById('selectContributor').style.display = 'block';
+						}
+						else
+						{
+							document.getElementById('ContributorInfor').style.display = 'block';
+							document.getElementById('selectContributor').style.display = 'none';
+							
+							$("#projectcontributor").html( result[0] );   //contributor id
+
+							
+							if(result[2] == false)         //is solution submitted
+							{
+								document.getElementById('contributorSendSolution').style.display = 'block';
+								$("#projectSolution").html("<br><br><b>Solution Submitted</b> : Not Submitted");
+								
+								document.getElementById('acceptContributorSolution').style.display = 'none';
+							}
+							else
+							{
+								document.getElementById('contributorSendSolution').style.display = 'none';
+								$("#projectSolution").html("<br><br><b>Solution Submitted</b> : Yes");
+								
+								if(result[3] == false)         //is solution accepted
+								{
+									document.getElementById('acceptContributorSolution').style.display = 'block';
+									$("#projectAccepted").html("<br><br><b>Solution Accepted</b> : Not Yet");
+								}
+								else
+								{
+									document.getElementById('acceptContributorSolution').style.display = 'none';
+									$("#projectAccepted").html("<br><br><b>Solution Accepted</b> :Yes and Shares Transfereed");
+								}								
+								
+							}
+							
+						}
+						
+					});
+		}
+		
+		
+		
+		function setContributor()
+		{			
+		
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };		
+					  
+					  task.setContributorAddress.sendTransaction
+					  (
+							$("#txtContributor").val(), 
+					  transactionObject, 
+					  (error, result)=> 
+					  {
+						  $("#txtContributor").val("");
+						  alert("Contributor address set");
+					  });			
+			
+		}
+		
+		
+		
+		function setContributorSolution()
+		{
+		
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };		
+					  
+					  task.contributorDeliverablesAreReadyWithNotes.sendTransaction
+					  (
+							$("#ContributorSubmitSolution").val(), 
+					  transactionObject, 
+					  (error, result)=> 
+					  {
+						  $("#ContributorSubmitSolution").val("");
+						  alert("Solution Submitted");
+					  });			
+		
+		}
+		
+		
+		
+		function AcceptContributorSubmitedSolution()
+		{
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };		
+					  
+					  task.markContributorTaskDoneAndTransferShare.sendTransaction
+					  (
+						 transactionObject, 
+					  (error, result)=> 
+					  {
+						  alert("Solution Accepted");
+					  });
+		}
+		
+		
+		
+	    function sendComments()
+		{
+					  var currentMetaMaskUser = web3.eth.accounts[0];
+					  					  
+					  const transactionObject = {
+					     from: currentMetaMaskUser,
+						 gas: 2000000,
+						 gasPrice: 4
+					  };		
+					  
+					  task.setNotes.sendTransaction
+					  (
+						 $("#sendComments").val(), 
+					   transactionObject,
+					  (error, result)=> 
+					  {
+						  alert("Comments Send");
+					  });		
+					
+			
+		}
+		
+		
+		
+	</script>
+
+
+	
+
+
+<div class="container">
+  <h2>Task Details</h2> 
+  <br>
+
+  <h3> Task : <span id="projecttask"> </span> </h3>
+
+  <br>
+  <h3> Contributor Information </h3>
+		<b>Contributor : </b>    <span id="projectcontributor"> </span>
+		<br><br>
+		<b>Shares : </b>    <span id="projectShares"> </span>	
+		<span id="projectSolution"> </span>
+		<span id="projectAccepted"> </span>	
+	
+	<div id="selectContributor">
+		<br><br>
+		<label class="control-label col-sm-3">Enter New Contributor Address</label>
+		<div class="col-sm-3">          
+		   <input type="text" class="form-control" id="txtContributor">
+		</div>
+		<button onclick="setContributor()" class="btn btn-primary">&nbsp;&nbsp;  Set Contributor  &nbsp;&nbsp;</button>
+	</div>
+
+	
+	<div id="ContributorInfor">		
+		<div id="contributorSendSolution">
+			<br>
+			<h3> Contributor Submit Solution </h3>
+			<textarea id="ContributorSubmitSolution" cols="70" rows="6"> </textarea>
+			<br>
+			<button onclick="setContributorSolution()" class="btn btn-primary">&nbsp;&nbsp;  Submit &nbsp;&nbsp;</button>
+		</div>
+		<br>
+		
+		<div id="acceptContributorSolution">
+			<h3> Accept Contributor Solution </h3>
+			<br>
+			<button onclick="AcceptContributorSubmitedSolution()" class="btn btn-primary">&nbsp;&nbsp;  Accept Contributor Solution &nbsp;&nbsp;</button>
+		</div>
+    </div>
+	
+	
+	
+  <br><br><br><br>
+  <h3>
+	 Comment
+  <h3>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>By</th>
+		<th>Comment</th>
+      </tr>
+    </thead>
+	<tbody id="commentsArea"></tbody>
+  </table>	
+			<h3> Send Comment </h3>
+			<textarea id="sendComments" cols="70" rows="6"> </textarea>
+			<br>
+			<button onclick="sendComments()" class="btn btn-primary">&nbsp;&nbsp;  Send Comments &nbsp;&nbsp;</button>  
+  
+	
+	
+
+  <br><br>  <br><br>  <br><br>
+  <a id="backToProjectButton" href="projectdetails" class="btn btn-primary">Back to project</a> 
+
+ 
+</div>
+
+
+
+
+			 
+			 
+			 
+			 
+	{{> Public_Footer}}
+	{{> Common_Footer}}
+
+	
+	

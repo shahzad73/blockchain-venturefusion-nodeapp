@@ -1,0 +1,79 @@
+
+	{{> Common_Header}}
+	{{> Public_Header}}
+	<script language="javascript">
+
+			$(document).ready(function()
+			{
+				$.get( "/contracts/Incubator.json", function( data ) {
+					
+					var abi_contract = data.abi;
+					
+					commonsSetWeb3Object();
+					
+					var contract = web3.eth.contract(abi_contract);
+
+					var incubator = contract.at(BlockchainIncubatorAddress);
+
+					incubator.getProjectCount.call( (error, result) => 
+					{ 
+						var count = parseInt(result.toString(), 10);
+						
+						if(count > 0)
+						{
+							for(a=0;a<count;a++)
+							{
+								incubator.getProject.call(a, (error, result) => 
+								{ 
+									var str = "";
+
+									  str = str + "<tr>";
+											str = str + "<td>" + result[0] + "</td>";
+											str = str + "<td>" + result[1] + "</td>";
+											str = str + "<td>" + result[2] + "</td>";
+											str = str + "<td>-</td>";
+											str = str + "<td><a href=\"projectdetails?pid=" + result[3] + "\" class=\"btn btn-primary pull-right\">Open Project</a>  </td>";
+									  str = str + "</tr>";
+
+									 $("#projectArea").append(str);
+								});
+							}
+						}
+						
+					})
+				})
+			})
+
+	</script>
+
+
+		 
+<div class="container">
+  <h2>Project List</h2>
+  <p>List of projects in this incubator</p>    
+  <br>
+  <a href="createproject" class="btn btn-primary pull-right">New Project</a>  
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+		<th>Symbol</th>
+        <th>Decimals</th>
+        <th>Shares</th>
+		<th></th>
+      </tr>
+    </thead>
+	<tbody id="projectArea"></tbody>
+  </table>
+</div>
+			 
+
+			 
+			 
+			 
+			 
+	{{> Public_Footer}}
+	{{> Common_Footer}}
+
+	
+	
