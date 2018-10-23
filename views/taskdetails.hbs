@@ -14,7 +14,7 @@
 				
 				$.get( "/contracts/ProjectTask.json", function( data ) 
 				{
-					var abi_contract = data.abi;					
+					var abi_contract = data.abi;
 					var contract = web3.eth.contract(abi_contract);
 					task = contract.at(  commonGetQueryStringValue("tid")  );
 					
@@ -273,7 +273,7 @@
   <table class="table">
     <thead>
       <tr>
-        <th>By</th>
+        <th style="width:190px;">By</th>
 		<th>Comment</th>
       </tr>
     </thead>
